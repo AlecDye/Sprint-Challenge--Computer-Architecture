@@ -12,10 +12,14 @@ class CPU:
         # pc = Program Counter -> stores address of current instruction
         self.pc = 0
 
-        self.reg[7] = 0xF4
+        # self.reg[7] = 0xF4
 
         # Stack pointer
-        self.sp = self.reg[7]
+        # self.sp = self.reg[7]
+        self.sp = 7
+
+        # flags
+        self.fl = 0
 
     # MAR = Memory Access Register -> stores mem address for read/write
     def ram_read(self, mar):
@@ -61,6 +65,15 @@ class CPU:
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
 
+        elif op == "CMP":
+            self.fl = 0x00
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = self.fl
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.fl = self.fl
+            if self.reg[reg_a] > self.reg[reg_b]:
+                self.fl = self.fl
+
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -92,28 +105,41 @@ class CPU:
         """Run the CPU."""
 
         # INSTRUCTIONS
-        # halt
+        # halt -> 1 (hex)
         HLT = 0b00000001
-        # pointer
+        # pointer -> 82 (hex)
         LDI = 0b10000010
-        # print
+        # print -> A7 (hex)
         PRN = 0b01000111
 
         # MATH
-        # add
+        # add -> A0 (hex)
         ADD = 0b10100000
-        # multiply
+        # multiply -> A2 (hex)
         MUL = 0b10100010
 
         # STACK
-        # push (add to stack)
+        # push (add to stack) -> 45 (hex)
         PUSH = 0b1000101
-        # pop (remove from stack)
+        # pop (remove from stack) -> 46 (hex)
         POP = 0b01000110
 
+        # call -> 50 (hex)
         CALL = 0b01010000
-
+        # return -> 11 (hex)
         RET = 0b00010001
+
+        # compare
+        CMP = 0b10100111
+        # jump immediately
+        JMP = 0b01010100
+        # jump if condition is equal
+        JEQ = 0b01010101
+        # jump if condition is false
+        JNE = 0b01010110
+
+        # debug before conditions
+        # self.trace()
 
         # computer "on" var to perform while loop
         isRunning = True
@@ -180,10 +206,28 @@ class CPU:
                 self.sp += 1
                 self.pc = address
 
+            elif instruction == CMP:
+                self.alu("CMP", opr_a, opr_b)
+                self.pc += 3
+
+            elif instruction == JMP:
+                self.pc = self.reg[opr_a]
+
+            elif instruction == JEQ:
+                if self.fl == 1:
+                    self.pc = self.reg[opr_a]
+                else:
+                    self.pc += 2
+
+            elif instruction == JNE:
+                if self.fl == 0:
+                    self.pc = self.reg[opr_a]
+                else:
+                    self.pc += 2
+
             else:
                 # DEBUG
-                print(f"self.pc = {self.pc}")
-                print(f"last instruction = {self.ram_read(self.pc)}")
+                # self.trace()
                 isRunning = False
                 sys.exit(1)
 
