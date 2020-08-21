@@ -68,11 +68,12 @@ class CPU:
         elif op == "CMP":
             self.fl = 0x00
             if self.reg[reg_a] == self.reg[reg_b]:
-                self.fl = self.fl
-            if self.reg[reg_a] < self.reg[reg_b]:
-                self.fl = self.fl
+                self.fl = self.fl | 0b00000001
+            # don't need a less than condition for MVP
+            # if self.reg[reg_a] < self.reg[reg_b]:
+            #     self.fl = self.fl | 0b00000100
             if self.reg[reg_a] > self.reg[reg_b]:
-                self.fl = self.fl
+                self.fl = self.fl | 0b00000010
 
         else:
             raise Exception("Unsupported ALU operation")
